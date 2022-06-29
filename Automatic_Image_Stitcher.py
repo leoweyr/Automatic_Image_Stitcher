@@ -245,8 +245,8 @@ def StitchImage(stitchingRoute,imageGather_basic,imageGather_generated):
                     isResize = False
                 else:
                     isResize = True
-                    stitchingRoute_micro_imageSize_width = stitchingRoute_micro.split(")")[1].split(":")[1].split("*")[0]
-                    stitchingRoute_micro_imageSize_height = stitchingRoute_micro.split(")")[1].split(":")[1].split("*")[1]
+                    stitchingRoute_micro_imageSize_width = int(stitchingRoute_micro.split(")")[1].split(":")[1].split("*")[0])
+                    stitchingRoute_micro_imageSize_height = int(stitchingRoute_micro.split(")")[1].split(":")[1].split("*")[1])
             try:
                 stitchingRoute_micro_cycle = stitchingRoute_micro.split(")")[0].split("(")[1]
             except:
@@ -265,16 +265,17 @@ def StitchImage(stitchingRoute,imageGather_basic,imageGather_generated):
                     elif (prcessUnit[0] == "H"):
                         process = StitchedImages_horizontal
                     while True:
+                        if (g_stitchingRoute_macro_count_sum > imageGather_basic.m_imagesCount and imageGather_basic.m_imageSelect == imageGather_basic.m_imageIDNext and g_isRecyclingMaterial == False):
+                            return
+                        elif (g_stitchingRoute_macro_count_sum > imageGather_basic.m_imagesCount and stitchingRouteCount == g_stitchingRoute_macro_count_sum and g_isRecyclingMaterial == True):
+                            return
+                        elif (g_stitchingRoute_macro_count_sum <= imageGather_basic.m_imagesCount and imageGather_basic.m_imageSelect == imageGather_basic.m_imageIDNext):
+                            return
                         if(processedCount < stitchingRoute_micro_count or processID < processedIDMax):
-                            if(g_stitchingRoute_macro_count_sum > imageGather_basic.m_imagesCount and imageGather_basic.m_imageSelect == imageGather_basic.m_imageIDNext and g_isRecyclingMaterial == False):
-                                return
-                            elif(g_stitchingRoute_macro_count_sum > imageGather_basic.m_imagesCount and stitchingRouteCount == g_stitchingRoute_macro_count_sum and g_isRecyclingMaterial == True):
-                                return
-                            elif(g_stitchingRoute_macro_count_sum <= imageGather_basic.m_imagesCount and imageGather_basic.m_imageSelect == imageGather_basic.m_imageIDNext):
-                                return
-                            if (processID == 0):
+                            if (processedCount == 0):
                                 imageGather_generated.Add(process(imageGather_basic.SelectAndRoll(),imageGather_basic.SelectAndRoll()))
-                            elif(processID + 1 == processedIDMax):
+                                processedCount += 1
+                            elif(processedCount + 1 == stitchingRoute_micro_count):
                                 if(isResize == True):
                                     imageGather_generated.CoverLast(process(imageGather_generated.SelectLast(), imageGather_basic.SelectAndRoll()).resize((stitchingRoute_micro_imageSize_width,stitchingRoute_micro_imageSize_height)))
                                 else:
