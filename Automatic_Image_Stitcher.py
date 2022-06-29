@@ -14,120 +14,188 @@ class ImageGather:
     def __init__(self,path):
         self.m_path = path
         self.m_imagesCount = len(os.listdir(path))
+        self.m_namedSerialization = 0
+        self.m_namedSuffix = None
         if(self.m_imagesCount == 0):
             self.m_imageIDFirst = 1
             self.m_imageIDNext = self.m_imageIDFirst
             self.m_imageSelect = self.m_imageIDFirst
         else:
             if(self.GetNamedRule() == False):
-                return False
+                self .isGetNamedRule = False
             else:
-                if (self.m_namedSerialization != 0 and self.m_imageIDFirst == 1):
-                    self.m_namedSerialization += 1
-                if (self.m_imageIDFirst == 1):
-                    self.m_imageIDNext = imageNamesLen + 1
-                elif (self.m_imageIDFirst == 0):
-                    self.m_imageIDNext = imageNamesLen
+                self.isGetNamedRule = True
+                self.m_imageIDNext = self.m_imageIDFirst + self.m_imagesCount
                 self.m_imageSelect = self.m_imageIDFirst
 
     def GetNamedRule(self):
+        imageNames = os.listdir(self.m_path)
         if(self.m_imagesCount > 1):
-            imageNames[0]
-            imageNames[1]
-            strID = 0
+            cheakPos = 0
+            isDifferentPos = True
             while True:
-                if(imageNames[0][strID] != imageNames[1][StrID]):
-                    try:
-                        int(imageNames[0][strID])
-                        int(imageNames[1][strID])
-                    except:
-                        return False
-                    differentPos = strID
-                    break
-                strID += 1
-            if(differentPos == 0):
-                self.m_namedPrefix = ""
-            else:
-                self.m_namedPrefix = imageNames[0][0:differentPos-1]
-            self.m_namedSerialization = 0
-            cheakPos = differentPos
-            isGetNamedSuffix = False
-            intCount = 0
-            while True:
-                cheakPos_backup = cheakPos
-                for imageName in imageNames:
-                    try:
-                        int(imageName)
-                    except:
-                        pass
-                    else:
-                        intCount += 1
-                    if(imageName[cheakPos] == "1" and isGetNamedSuffix == False):
-                        self.m_namedSuffix = imageNames[cheakPos+1:]
-                        isGetNamedSuffix = True
-                    if(imageName[cheakPos] == "0"):
-                        try:
-                            int(imageName[cheakPos + 1])
-                        except:
-                            self.m_imageIDFirst = 0
-                            break
-                        else:
-                            self.m_namedSerialization += 1
-                            cheakPos += 1
-                            break
-                if(intCount == 0):
-                    return False
-                if(cheakPos == cheakPos_backup):
-                    break
-        else:
-            strID = 0
-            cheakMode = 0
-            intCount = 0
-            self.m_namedSerialization = 0
-            for word in imageNames[0]:
                 try:
-                    int(word)
+                    int(imageNames[0][cheakPos])
+                    int(imageNames[1][cheakPos])
                 except:
-                    if(cheakMode == 1 and isLastZero == True):
-                        self.m_imageIDFirst = 0
-                    if(cheakMode == 1):
-                        self.m_namedSuffix = imageNames[0][strID]
+                    if(isDifferentPos == False):
+                        isDifferentPos = True
+                    elif(cheakPos > len(imageNames[0]) or cheakPos > len(imageNames[1])):
+                        return False
+                    cheakPos += 1
+                else:
+                    if(imageNames[0][cheakPos] != imageNames[1][cheakPos]):
+                        if(isDifferentPos == False):
+                            differentPos = differentPos_breakup
+                        else:
+                            differentPos = cheakPos
+                        break
+                    elif(imageNames[0][cheakPos] == imageNames[1][cheakPos]):
+                        if(isDifferentPos == True):
+                            isDifferentPos = False
+                            differentPos_breakup = cheakPos
+                        cheakPos += 1
+            if(differentPos > 1):
+                self.m_namedPrefix = str(imageNames[0][0:differentPos])
+            elif(differentPos == 1):
+                self.m_namedPrefix = str(imageNames[0][0])
+            else:
+                self.m_namedPrefix = ""
+            cheakPos = differentPos
+            cheakMode = 0
+            includeIntCount = 0
+            isSerial = False
+            while (cheakMode < 2):
+                for imageName in imageNames:
+                    if(cheakMode == 0):
+                        if (differentPos > 1):
+                            namedPrefix = str(imageName[0:differentPos])
+                        elif (differentPos == 1):
+                            namedPrefix = str(imageName[0])
+                        else:
+                            namedPrefix = ""
+                        if(namedPrefix != self.m_namedPrefix):
+                            return False
+                        try:
+                            int(imageName[cheakPos])
+                        except:
+                            pass
+                        else:
+                            includeIntCount += 1
+                            if(imageName[differentPos] == "0"):
+                                try:
+                                    int(imageName[differentPos+1])
+                                except:
+                                    pass
+                                else:
+                                    isSerial = True
+                    elif(cheakMode == 1):
+                        cheakPos = differentPos
+                        isEnd = False
+                        intCount = 0
+                        while (isEnd == False):
+                            try:
+                                int(imageName[cheakPos])
+                            except:
+                                isEnd = True
+                                if(self.m_namedSuffix == None):
+                                    self.m_namedSuffix = imageName[cheakPos:]
+                                elif(self.m_namedSuffix != imageName[cheakPos:]):
+                                    return False
+                            else:
+                                intCount += 1
+                                cheakPos += 1
+                        if(isSerial == True and intCount > self.m_namedSerialization):
+                            self.m_namedSerialization = intCount
+                if(includeIntCount == 0):
+                    return False
+                cheakMode += 1
+        else:
+            intCount = 0
+            cheakPos = 0
+            isGetDifferentPos = False
+            isSerial = False
+            while True:
+                try:
+                    int(imageNames[0][cheakPos])
+                except:
+                    if(cheakPos > 0):
+                        try:
+                            int(imageNames[0][cheakPos - 1])
+                        except:
+                            pass
+                        else:
+                            self.m_namedSuffix = imageNames[0][cheakPos:]
+                            self.m_imageIDFirst = imageNames[0][cheakPos - 1]
+                            break
+                    elif(len(imageNames[0]) == 1):
+                        break
                 else:
                     intCount += 1
-                    if(cheakMode == 0 and strID != 0):
-                        self.m_namedPrefix = imageNames[0][strID - 1]
-                        cheakMode += 1
-                    elif(cheakMode == 0 and strID == 0):
-                        self.m_namedPrefix = ""
-                        cheakMode += 1
-                    elif(cheakMode == 1 and isLastZero == True):
-                        self.m_namedSerialization += 1
-                    elif(cheakMode == 1 and word == "0"):
-                        isLastZero = True
-                strID += 1
+                    if(isGetDifferentPos == False):
+                        if(cheakPos > 1):
+                            self.m_namedPrefix = imageNames[0][0:cheakPos]
+                        elif(cheakPos == 1):
+                            self.m_namedPrefix = imageNames[0][0]
+                        else:
+                            self.m_namedPrefix = ""
+                        isGetDifferentPos = True
+                    else:
+                        if(imageNames[0][cheakPos] == "0"):
+                            try:
+                                int(imageNames[0][cheakPos + 1])
+                            except:
+                                pass
+                            else:
+                                isSerial = True
+
+                cheakPos += 1
             if(intCount == 0):
                 return False
+            if(isSerial == True):
+                self.m_namedSerialization = intCout
+        intMin = 0
+        while (intMin < 10):
+            if (self.m_namedPrefix + str("0"*(self.m_namedSerialization - 1)) + str(intMin) + self.m_namedSuffix in imageNames):
+                self.m_imageIDFirst = intMin
+                break
+            intMin += 1
         return True
 
+    def GetNamedSerial(self,number):
+        if(self.m_namedSerialization == 0):
+            return str(number)
+        else:
+            namedSerialization = 0
+            namedSerial = ""
+            while (namedSerialization < self.m_namedSerialization - len(str(number))):
+                namedSerial += "0"
+                namedSerialization += 1
+            return namedSerial + str(number)
+
     def Add(self,image):
-        image.save(self.m_path + "\\" + self.m_namedPrefix + str(self.m_imageIDNext) + self.m_namedSuffix)
+        image.save(self.m_path + "\\" + self.m_namedPrefix + self.GetNamedSerial(self.m_imageIDNext) + self.m_namedSuffix)
         self.m_imageIDNext += 1
 
     def CoverLast(self,image):
-        image.save(self.m_path + "\\" + self.m_namedPrefix + str(self.m_imageIDNext - 1) + self.m_namedSuffix)
+        image.save(self.m_path + "\\" + self.m_namedPrefix + self.GetNamedSerial(self.m_imageIDNext - 1) + self.m_namedSuffix)
 
     def SelectReset(self):
         self.m_imageSelect = self.m_imageIDFirst
 
     def SelectPresent(self):
-        image = Image.open(self.m_path + "\\" + self.m_namedPrefix + str(self.m_imageSelect) + self.m_namedSuffix)
+        image = Image.open(self.m_path + "\\" + self.m_namedPrefix + self.GetNamedSerial(self.m_imageSelect) + self.m_namedSuffix)
+        return image
+
+    def SelectLast(self):
+        image = Image.open(self.m_path + "\\" + self.m_namedPrefix + self.GetNamedSerial(self.m_imageIDNext - 1) + self.m_namedSuffix)
         return image
 
     def SelectAndRoll(self,isSelectLoop=g_isRecyclingMaterial):
-        image = Image.open(self.m_path + "\\" + self.m_namedPrefix + str(self.m_imageSelect) + self.m_namedSuffix)
-        self.m_imageSelect += 1
+        image = Image.open(self.m_path + "\\" + self.m_namedPrefix + self.GetNamedSerial(self.m_imageSelect) + self.m_namedSuffix)
         if(isSelectLoop == True and self.m_imageSelect == self.m_imageIDNext):
             self.SelectReset()
+        self.m_imageSelect += 1
         return image
 
 def StitchedImages_vertical(imgFront,imgBack):
@@ -153,10 +221,11 @@ def StitchedImages_horizontal(imgFront,imgBack):
     return stitchedImages
 
 
-def StitchImage(stitchingRoute,imageGather_basic,imageGather_generated): #(H4)50:280*502
+def StitchImage(stitchingRoute,imageGather_basic,imageGather_generated):
     global g_isRecyclingMaterial
     global g_stitchingRoute_macro_count_sum
     imageGather_generated.m_namedPrefix = imageGather_basic.m_namedPrefix
+    imageGather_generated.m_namedSerialization = imageGather_basic.m_namedSerialization
     imageGather_generated.m_namedSuffix = imageGather_basic.m_namedSuffix
     stitchingRouteCount = 0
     while True:
@@ -168,7 +237,7 @@ def StitchImage(stitchingRoute,imageGather_basic,imageGather_generated): #(H4)50
                 stitchingRoute_micro_count = imageGather_basic.m_imagesCount
                 isResize = False
             else:
-                stitchingRoute_micro_count = stitchingRoute_micro.split(")")[1].split(":")[0]
+                stitchingRoute_micro_count = int(stitchingRoute_micro.split(")")[1].split(":")[0])
                 try:
                     stitchingRoute_micro.split(")")[1].split(":")[1]
                     stitchingRoute_micro.split(")")[1].split(":")[1].split("*")[1]
@@ -203,15 +272,16 @@ def StitchImage(stitchingRoute,imageGather_basic,imageGather_generated): #(H4)50
                                 return
                             elif(g_stitchingRoute_macro_count_sum <= imageGather_basic.m_imagesCount and imageGather_basic.m_imageSelect == imageGather_basic.m_imageIDNext):
                                 return
-                            if (processedID == 0):
+                            if (processID == 0):
                                 imageGather_generated.Add(process(imageGather_basic.SelectAndRoll(),imageGather_basic.SelectAndRoll()))
                             elif(processID + 1 == processedIDMax):
                                 if(isResize == True):
-                                    imageGather_generated.CoverLast(process(imageGather_generated.SelectAndRoll(), imageGather_basic.SelectAndRoll()).resize((stitchingRoute_micro_imageSize_width,stitchingRoute_micro_imageSize_height)))
+                                    imageGather_generated.CoverLast(process(imageGather_generated.SelectLast(), imageGather_basic.SelectAndRoll()).resize((stitchingRoute_micro_imageSize_width,stitchingRoute_micro_imageSize_height)))
                                 else:
-                                    imageGather_generated.CoverLast(process(imageGather_generated.SelectAndRoll(),imageGather_basic.SelectAndRoll()))
+                                    imageGather_generated.CoverLast(process(imageGather_generated.SelectLast(),imageGather_basic.SelectAndRoll()))
                             else:
-                                imageGather_generated.CoverLast(process(imageGather_generated.SelectPresent(), imageGather_basic.SelectAndRoll()))
+                                imageGather_generated.CoverLast(process(imageGather_generated.SelectLast(), imageGather_basic.SelectAndRoll()))
+                            print("An image has been generated.")
                             stitchingRouteCount += 1
                             processedCount += 1
                             processID += 1
@@ -221,6 +291,13 @@ def StitchImage(stitchingRoute,imageGather_basic,imageGather_generated): #(H4)50
                         break
                 if(processedCount >= stitchingRoute_micro_count):
                     break
+def RemoveDir(path):
+    try:
+        for file in os.listdir(path):
+            os.remove(path + "\\" + file)
+    except:
+        pass
+    os.rmdir(path)
 
 def UI_bye():
     g.msgbox(
@@ -236,7 +313,7 @@ def main():
     g.msgbox("Welcome to Automatic Image Stitcher!\nA graduation gift for WenHai.\nMade with ♥ by leoweyr.",SWNAME,"♥")
     while True:
         workFn = g.choicebox("What do you want me to do?",SWNAME,("Stitch images","Exit software"))
-        if(workFn == "Stitch image"):
+        if(workFn == "Stitch images"):
             while True:
                 imageGatherPath_basic = g.diropenbox("Please select the folder that sores the images be stitched",SWNAME)
                 if(imageGatherPath_basic == None):
@@ -268,15 +345,19 @@ def main():
                         elif (notice == "Exit software"):
                             UI_bye()
                 imageGather_basic = ImageGather(imageGatherPath_basic)
-                if(imageGather_basic == False):
+                if(imageGather_basic.isGetNamedRule == False):
                     while True:
                         notice = g.buttonbox("Please let all images that be in the selected folder follow the named convention with serial number as the core!",SWNAME, ["Reselect", "Exit software"])
                         if (notice == "Reselect"):
                             break
                         elif (notice == "Exit software"):
                             UI_bye()
-                break
+                else:
+                    break
             imageGatherPath_generated = imageGatherPath_basic + "_generated"
+            if(os.path.exists(imageGatherPath_generated) == True):
+                RemoveDir(imageGatherPath_generated)
+            os.mkdir(imageGatherPath_generated)
             imageGather_generated = ImageGather(imageGatherPath_generated)
             while True:
                 stitchingRoute = g.enterbox("Please enter a splicing rule expression:",SWNAME,"( - ):*")
@@ -290,7 +371,7 @@ def main():
                         stitchingRoute_macro_count = imageGather_basic.m_imagesCount
                         g_stitchingRoute_macro_count_sum += stitchingRoute_macro_count
                     else:
-                        stitchingRoute_macro_count = stitchingRoute_micro.split(")")[1].split(":")[0]
+                        stitchingRoute_macro_count = int(stitchingRoute_micro.split(")")[1].split(":")[0])
                         g_stitchingRoute_macro_count_sum += stitchingRoute_macro_count
                     try:
                         stitchingRoute_micro_cycle = stitchingRoute_micro.split(")")[0].split("(")[1]
@@ -298,7 +379,10 @@ def main():
                         stitchingRoute_micro_cycle = stitchingRoute_micro.split(")")[0]
                     stitchingRoute_micro_count_sum = 0
                     for stitchingRoute_micro_each in stitchingRoute_micro_cycle.split("-"):
-                        stitchingRoute_micro_count_sum += int(stitchingRoute_micro_each[1:])
+                        try:
+                            stitchingRoute_micro_count_sum += int(stitchingRoute_micro_each[1:])
+                        except:
+                            stitchingRoute_micro_count_sum += 1
                     if(stitchingRoute_micro_count_sum > stitchingRoute_macro_count):
                         isMicroCountThanMacroCount = True
                 if(g_stitchingRoute_macro_count_sum > imageGather_basic.m_imagesCount):
@@ -323,9 +407,9 @@ def main():
                 else:
                     break
             StitchImage(stitchingRoute,imageGather_basic,imageGather_generated)
+            os.system("explorer.exe " + imageGatherPath_generated)
             while True:
                 notice = g.buttonbox("The images are automatically stitched together in batches, and the corresponding folder has been opened for you.",SWNAME,["Stitch anothor images","Exit software"])
-                os.system("explorer.exe " + imageGatherPath_generated)
                 if(notice == "Stitch anothor images"):
                     break
                 elif(notice == "Exit software"):
