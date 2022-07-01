@@ -1,5 +1,6 @@
 import os
 
+import PIL.ImageFile
 from PIL import Image, ImageDraw
 import easygui as g
 import webbrowser
@@ -16,6 +17,7 @@ class ImageGather:
         self.m_imagesCount = len(os.listdir(path))
         self.m_namedSerialization = 0
         self.m_namedSuffix = None
+        self.m_namedSuffix_backup = None
         if(self.m_imagesCount == 0):
             self.m_imageIDFirst = 1
             self.m_imageIDNext = self.m_imageIDFirst
@@ -178,7 +180,16 @@ class ImageGather:
         self.m_imageIDNext += 1
 
     def CoverLast(self,image):
-        image.save(self.m_path + "\\" + self.m_namedPrefix + self.GetNamedSerial(self.m_imageIDNext - 1) + self.m_namedSuffix)
+        try:
+            image.save(self.m_path + "\\" + self.m_namedPrefix + self.GetNamedSerial(self.m_imageIDNext - 1) + self.m_namedSuffix)
+        except IOError:
+            os.remove(self.m_path + "\\" + self.m_namedPrefix + self.GetNamedSerial(self.m_imageIDNext - 1) + self.m_namedSuffix)
+            namedSuffix = ""
+            for word in self.m_namedSuffix.split(".")[:-1]:
+                namedSuffix += word
+            self.m_namedSuffix_backup = self.m_namedSuffix
+            self.m_namedSuffix = namedSuffix + ".png"
+            image.save(self.m_path + "\\" + self.m_namedPrefix + self.GetNamedSerial(self.m_imageIDNext - 1) + self.m_namedSuffix,"png")
 
     def SelectReset(self):
         self.m_imageSelect = self.m_imageIDFirst
@@ -282,7 +293,7 @@ def StitchImage(stitchingRoute,imageGather_basic,imageGather_generated):
                                     imageGather_generated.CoverLast(process(imageGather_generated.SelectLast(),imageGather_basic.SelectAndRoll()))
                             else:
                                 imageGather_generated.CoverLast(process(imageGather_generated.SelectLast(), imageGather_basic.SelectAndRoll()))
-                            print("An image has been generated.")
+                            print("No." + str(imageGather_basic.m_imageSelect) + " image from basic imageGather " + "has been stitched")
                             stitchingRouteCount += 1
                             processedCount += 1
                             processID += 1
@@ -291,6 +302,8 @@ def StitchImage(stitchingRoute,imageGather_basic,imageGather_generated):
                     if(processedCount >= stitchingRoute_micro_count):
                         break
                 if(processedCount >= stitchingRoute_micro_count):
+                    if(imageGather_basic.m_namedSuffix_backup != None):
+                        imageGather_basic.m_namedSuffix = imageGather_basic.m_namedSuffix_backup
                     break
 def RemoveDir(path):
     try:
